@@ -36,7 +36,7 @@ def blinterpvec(uv, xymin, xymax, xy, norm):
   return ret
 
 # read vectors from file
-def read2vecs(fname):
+def read2vecs(fname, optimise=True):
   ff = open(fname)
   line = ff.readline()
   while '#' == line[0]:
@@ -48,7 +48,10 @@ def read2vecs(fname):
   sizey = int(flds[2])
   xymin = (float(flds[3]),float(flds[4]))
   xymax = (float(flds[5]),float(flds[6]))
-  uv = np.array([float(j) for i in ff.readlines() for j in i.split()])
+  if optimise:
+      uv = np.array([ i.split() for i in ff ], dtype='float64')
+  else:
+      uv = np.array([float(j) for i in ff.readlines() for j in i.split()])
   uv.shape = sizey,sizex,2
   return xymin,xymax,uv
 
@@ -56,17 +59,17 @@ def read2vecs(fname):
 # and xymax), starting from seed, with step size h, taking
 # S steps forward and backward.  vectors are normalized 
 # prior to integration if norm is true.
-def sline(uv, xymin, xymax, seed, h, S, norm):
+def sline(uv, xymin, xymax, seed, h, S, norm, direction=2):
   bl = lambda pos: blinterpvec(uv, xymin, xymax, pos, norm)
   xrng = [min(xymin[0], xymax[0]), max(xymin[0], xymax[0])]
   yrng = [min(xymin[1], xymax[1]), max(xymin[1], xymax[1])]
   path = np.zeros([2*S+1,2])
   path[S,:] = seed.copy()
-  sign = [1,-1]
+  sign = [1, -1]
   steps = [0,0]  # diridx=0: forward, 1: backward
   apos = seed.copy()
   bpos = seed.copy()
-  for diridx in range(2):
+  for diridx in range(direction):
     ss = sign[diridx]
     apos[:] = seed[:]
     for stepidx in range(S):
