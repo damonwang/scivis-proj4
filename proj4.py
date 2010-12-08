@@ -5,6 +5,9 @@ from cairo import Context, ImageSurface, Pattern
 import sline
 from sline import sline, read2vecs, blinterpvec
 import cnv
+import cm
+
+from contextlib import contextmanager
 
 import os
 from os import path
@@ -16,6 +19,9 @@ class Options(dict):
 
     def __getattr__(self, name):
         return self.__getitem__(name)
+
+    def __setattr__(self, name, value):
+        return self.__setitem__(name, value)
 
 #-----------------------------------------------------------------------
 # Functions for part 1
@@ -140,9 +146,25 @@ def vorticity(data, xmin, xmax, ymin, ymax, upsample_x=1, upsample_y=1):
 
     return gradient[...,0] - gradient[...,1]
 
+@contextmanager
+def io(options):
+
+    if not path.exists(options.saveas): os.makedirs(options.saveas)
+
+    (xmin, ymin), (xmax, ymax), uv = read2vecs(options.infname)
+    width, height = xmax - xmin, ymax - ymin
+    r, c = uv.shape[:2]
+
+    yield Options(xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, uv=uv
+
+
+
 def color_mag(data):
 
-    pass
+    options = Options(infname='data/vorttest.txt', saveas='output/mag/',
+            outfname='vorttest.png', scale=100.)
+    options.update(kwargs)
+
 
 def color_vorticity(*args, **kwargs):
 
